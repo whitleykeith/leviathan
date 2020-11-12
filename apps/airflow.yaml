@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: airflow
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination: 
+    namespace: airflow
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/whitleykeith/airflow-kubernetes
+    path: airflow
+    revision: HEAD
+    helm:
+      releaseName: airflow
+      values: |-
+        defaultAirflowTag: latest
+        dags:
+          gitSync:
+            repo: https://github.com/whitleykeith/airflow-kubernetes.git
+            enabled: true
+            branch: master
+            subPath: dags
+            depth: 8
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
