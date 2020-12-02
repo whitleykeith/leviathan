@@ -18,13 +18,27 @@ spec:
       releaseName: airflow
       values: |-
         defaultAirflowTag: latest
+        config:
+          elasticsearch_configs:
+            use_ssl: "True"
+            verify_certs: "True"
+            ssl_show_warn: "False"
+          
+
+          kubernetes:
+            delete_worker_pods: False
         dags:
           gitSync:
             repo: https://github.com/whitleykeith/airflow-kubernetes.git
             enabled: true
             branch: master
-            subPath: dags
+            subPath: openshift_nightlies
             depth: 8
+        elasticsearch:
+          enabled: False
+          connection: 
+            host: elasticsearch.openshift-logging.svc.cluster.local
+            port: 9200
   syncPolicy:
     automated:
       prune: true
