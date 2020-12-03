@@ -23,22 +23,23 @@ spec:
             use_ssl: "True"
             verify_certs: "True"
             ssl_show_warn: "False"
-          
-
           kubernetes:
             delete_worker_pods: False
         dags:
           gitSync:
-            repo: https://github.com/whitleykeith/airflow-kubernetes.git
             enabled: true
-            branch: master
-            subPath: openshift_nightlies
+            subPath: dags
             depth: 8
         elasticsearch:
           enabled: False
           connection: 
             host: elasticsearch.openshift-logging.svc.cluster.local
             port: 9200
+      parameters:
+      - name: dags.gitSync.repo
+        value: https://github.com/whitleykeith/airflow-kubernetes.git
+      - name: dags.gitSync.branch
+        value: master
   syncPolicy:
     automated:
       prune: true
