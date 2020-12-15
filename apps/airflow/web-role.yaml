@@ -16,6 +16,9 @@ subjects:
 - kind: ServiceAccount
   name: airflow-webserver # Name is case sensitive
   namespace: airflow
+- kind: ServiceAccount
+  name: airflow-worker # Name is case sensitive
+  namespace: airflow
 roleRef:
   kind: ClusterRole
   name: pod-reader

@@ -1,23 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: airflow
+  name: airflow-v2
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   destination: 
-    namespace: airflow
+    namespace: airflow-v2
     server: https://kubernetes.default.svc
   source:
     repoURL: https://github.com/whitleykeith/airflow-kubernetes
     path: airflow
     revision: HEAD
     helm:
-      releaseName: airflow
+      releaseName: airflow-v2
       values: |-
-        defaultAirflowTag: 1.10.12
+        defaultAirflowTag: 2.0.0b3-python3.8
         config:
           elasticsearch_configs:
             use_ssl: "True"
