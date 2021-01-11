@@ -14,20 +14,66 @@ if [[ -z "$user" || -z $branch ]]; then
     usage
 fi
 
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-kubectl apply -f $GIT_ROOT/apps/airflow
-kubectl apply -f $GIT_ROOT/apps/argocd
+install_helm(){
+    HELM_VERSION=v3.4.2
+    wget https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz
+    tar -zxf helm-${HELM_VERSION}-linux-amd64.tar.gz
+    mv linux_amd64/helm /usr/bin/helm   
+}
 
-YQ_VERSION=3.4.1
-YQ_BINARY=yq_linux_amd64
-wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY} -O /usr/bin/yq &&\
-    chmod +x /usr/bin/yq
+install_yq(){
+    YQ_VERSION=3.4.1
+    YQ_BINARY=yq_linux_amd64
+    wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY} -O /usr/bin/yq &&\
+        chmod +x /usr/bin/yq
+}
 
-cat $GIT_ROOT/apps/airflow/airflow.yaml | \
+add_privileged_service_accounts(){
+    oc -n airflow adm policy add-scc-to-user privileged -z airflow-scheduler 
+    oc -n airflow adm policy add-scc-to-user privileged -z airflow-webserver
+    oc -n airflow adm policy add-scc-to-user privileged -z airflow-worker
+    oc -n airflow adm policy add-scc-to-user privileged -z builder
+    oc -n airflow adm policy add-scc-to-user privileged -z deployer
+    oc -n airflow adm policy add-scc-to-user privileged -z default
+}
+
+install_airflow_workaround(){
+    git clone https://github.com/whitleykeith/airflow-kubernetes 
+    cd airflow-kubernetes/airflow
+    helm dep update
+    kubectl create namespace airflow || true
+    helm upgrade airflow . --namespace airflow --install
+}
+
+install_argo(){
+    kubectl create namespace airflow
+    kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+}
+
+
+create_argo_apps(){
+    kubectl apply -f $GIT_ROOT/apps/argocd
+    cat $GIT_ROOT/apps/airflow/airflow.yaml | \
     yq w - 'spec.source.helm.parameters.(name==dags.gitSync.repo).value' https://github.com/$user/airflow-kubernetes.git | \
     yq w - 'spec.source.helm.parameters.(name==dags.gitSync.branch).value' $branch | \
     kubectl apply -f -
+}
+
+remove_airflow_workaround(){
+    helm delete airflow -n airflow
+}
+
+
+install_helm
+install_yq
+add_privileged_service_accounts
+install_airflow_workaround
+install_argo
+create_argo_apps
+
+
+
+
 
 
 
@@ -41,9 +87,3 @@ echo "Argo is setting up your Cluster, check the status here: $(argo_route)"
 echo "Airflow will be at $(airflow_route), user/pass is admin/admin"
 
 
-oc -n airflow adm policy add-scc-to-user privileged -z airflow-scheduler 
-oc -n airflow adm policy add-scc-to-user privileged -z airflow-webserver
-oc -n airflow adm policy add-scc-to-user privileged -z airflow-worker
-oc -n airflow adm policy add-scc-to-user privileged -z builder
-oc -n airflow adm policy add-scc-to-user privileged -z deployer
-oc -n airflow adm policy add-scc-to-user privileged -z default
