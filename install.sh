@@ -67,11 +67,13 @@ create_routes(){
     yq w - 'spec.host' $airflow_route | \
     kubectl apply -f -
 
-    echo "Airflow confiugred"
+    echo "Airflow route configured at $airflow_route"
 
     cat $GIT_ROOT/apps/argocd/route.yaml | \
     yq w - 'spec.host' $argo_route | \
     kubectl apply -f -
+
+    echo "Argo route configured at $argo_route"
 }
 
 remove_airflow_workaround(){
