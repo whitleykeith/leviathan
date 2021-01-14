@@ -1,11 +1,12 @@
 #!/bin/bash
 usage() { printf "Usage: ./install.sh -u USER -b BRANCH \nUser/Branch should point to your fork of the airflow-kubernetes repository" 1>&2; exit 1; }
 GIT_ROOT=$(git rev-parse --show-toplevel)
-while getopts b:u: flag
+while getopts b:u:c: flag
 do
     case "${flag}" in
         u) user=${OPTARG};;
         b) branch=${OPTARG};;
+        c) cluster_name=${OPTARG};;
         *) usage;;
     esac
 done
@@ -51,11 +52,25 @@ install_argo(){
 }
 
 
-create_argo_apps(){
-    kubectl apply -f $GIT_ROOT/apps/argocd
+create_airflow_app(){
     cat $GIT_ROOT/apps/airflow/airflow.yaml | \
     yq w - 'spec.source.helm.parameters.(name==dags.gitSync.repo).value' https://github.com/$user/airflow-kubernetes.git | \
     yq w - 'spec.source.helm.parameters.(name==dags.gitSync.branch).value' $branch | \
+    kubectl apply -f -
+}
+
+create_routes(){
+    airflow_route=airflow-k8.apps.$cluster_name.perfscale.devcluster.openshift.com
+    argo_route=argo.apps.$cluster_name.perfscale.devcluster.openshift.com
+
+    cat $GIT_ROOT/apps/airflow/route.yaml | \
+    yq w - 'spec.host' $airflow_route | \
+    kubectl apply -f -
+
+    echo "Airflow confiugred"
+
+    cat $GIT_ROOT/apps/argocd/route.yaml | \
+    yq w - 'spec.host' $argo_route | \
     kubectl apply -f -
 }
 
@@ -69,7 +84,8 @@ install_yq
 add_privileged_service_accounts
 install_airflow_workaround
 install_argo
-create_argo_apps
+create_airflow_app
+create_routes
 
 
 

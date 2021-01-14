@@ -9,6 +9,7 @@ An Openshift Cluster deployed via [scale-ci-deploy](https://github.com/openshift
 
 ## Installing Airflow 
 
-Run `./install.sh -u $GIT_USER -b $BRANCH`
+Run `./install.sh -u $GIT_USER -b $BRANCH -c $CLUSTER_NAME`
 
 Where the GIT_USER is your username, and BRANCH is the branch you want your Airflow DAGs to be pulled from. 
+$CLUSTER_NAME is the name you gave your cluster in the scale-ci-deploy playbook.
