@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x 
 usage() { printf "Usage: ./install.sh -u USER -b BRANCH \nUser/Branch should point to your fork of the airflow-kubernetes repository" 1>&2; exit 1; }
 GIT_ROOT=$(git rev-parse --show-toplevel)
 while getopts b:u:c: flag
