@@ -44,15 +44,18 @@ install_airflow_workaround(){
     git clone https://github.com/whitleykeith/airflow-kubernetes 
     cd airflow-kubernetes/airflow
     helm dep update
-    kubectl create namespace airflow || true
+    
     helm upgrade airflow . --namespace airflow --install
 }
 
-install_argo(){
-    kubectl create namespace argocd || true
+install_argo(){    
     kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 }
 
+create_namespaces(){
+    kubectl create namespace argocd || true
+    kubectl create namespace airflow || true
+}
 
 create_airflow_app(){
     cat $GIT_ROOT/apps/airflow/airflow.yaml | \
@@ -85,6 +88,7 @@ remove_airflow_workaround(){
 
 install_helm
 install_yq
+create_namespaces
 add_privileged_service_accounts
 install_airflow_workaround
 install_argo
