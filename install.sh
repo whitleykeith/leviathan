@@ -49,7 +49,7 @@ install_airflow_workaround(){
 }
 
 install_argo(){
-    kubectl create namespace argocd
+    kubectl create namespace argocd || true
     kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 }
 
