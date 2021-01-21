@@ -60,8 +60,8 @@ create_airflow_app(){
 }
 
 create_routes(){
-    airflow_route=airflow-k8.apps.$cluster_name.perfscale.devcluster.openshift.com
-    argo_route=argo.apps.$cluster_name.perfscale.devcluster.openshift.com
+    airflow_route="airflow-k8.apps.$cluster_name.perfscale.devcluster.openshift.com"
+    argo_route="argo.apps.$cluster_name.perfscale.devcluster.openshift.com"
 
     cat $GIT_ROOT/apps/airflow/route.yaml | \
     yq w - 'spec.host' $airflow_route | \
@@ -101,7 +101,7 @@ create_routes
 argo_route=$(oc get routes -n argocd -o json | jq -r '.items[0].spec.host')
 airflow_route=$(oc get routes -n airflow -o json | jq -r '.items[0].spec.host')
 
-echo "Argo is setting up your Cluster, check the status here: $(argo_route)"
-echo "Airflow will be at $(airflow_route), user/pass is admin/admin"
+echo "Argo is setting up your Cluster, check the status here: $argo_route"
+echo "Airflow will be at $airflow_route, user/pass is admin/admin"
 
 
