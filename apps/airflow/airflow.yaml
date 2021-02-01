@@ -17,8 +17,10 @@ spec:
     helm:
       releaseName: airflow
       values: |-
-        defaultAirflowTag: 1.10.12
+        defaultAirflowTag: 2.0.0
         config:
+          core:
+            colored_console_log: "True"
           elasticsearch_configs:
             use_ssl: "True"
             verify_certs: "True"
